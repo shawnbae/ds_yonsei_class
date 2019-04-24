@@ -1,0 +1,23 @@
+---
+title: "Homework"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Data Summary & Analysis
+데이터를 관찰한 후 선형회귀모형을 적합시켜 그림을 확인해본다.
+
+```{r cars}
+summary(cars)
+lmcars <- lm(dist~speed, data = cars)
+summary(lmcars)
+plot(cars)
+abline(coef(lmcars))
+```
+
+## Modeling Feedback
+선형모형의 계수에 대한 p-value가 이 회귀계수들은 유의하다고 말해주고 있다.
