@@ -1,0 +1,88 @@
+---
+title: "Project"
+author: Soohan Bae
+date: "`r format(Sys.time(), '%Y, %B %d')`"
+output: 
+  html_document:
+    toc: true
+    theme: united
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load_data}
+bigmac <-
+  read.table("C:/BigMac.csv", header = T, sep = ",") 
+```
+
+## Summary
+독립변수를 설정함에 있어 다음과 같은 의문이 들었다.
+
+1) 빅맥 지수는 무엇이며, 이 데이터는 왜 직접적인 빅맥 가격을 측정한 것이 아니라 빅맥을 만드는 데 걸리는 시간을 측정하였을까?
+
+PPP(purchasing power parity) 즉 구매력평가지수 중 하나로 전 세계적으로 빅맥이 통용되는 소비재라는 점에서 가격의 차이가 물가의 차이를 반영할 수 있을 것이라는 아이디어에서 고안되었다. 환율에 관심이 있는 PPP의 척도 중 하나로서 단순 빅맥지수는 국가별 경제 변동 상황을 반영하지 못할 수 있다. 예를 들어 맥도날드라는 기업에 대해 호의적인 국가는 해당 직원들을 많이 고용할 수 있지만 그렇지 않은 경우에는 직원 고용이 많지 않을 수 있다. 이 경우 단순 빅맥의 가격이 종업원의 숫자에 의한 임금이 빅맥 가격에 미치는 영향을 담아내지 못하므로 PPP의 의미가 퇴색될 수 있다.
+
+2) 왜 몇 가지 독립변수의 기준이 달러인가?
+
+달러로 측정된 독립변수들을 사용하여 모델링을 한다면 PPP 측정의 의미가 퇴색되지는 않을까? 이는 우리가 각국의 화폐 차이로 인해 생기는 구매력이 궁금하여 측정한 PPP를 다루는 입장에서 모순이다. 또한 중요하다고 생각되는 변수 Service의 경우 단위도, 정의도 명확하지 않다. 따라서 dollar를 기준으로 한 독립변수 및 Service 변수를 제외하였다.
+
+즉, 모델링을 함에 있어 통계적으로 구매력평가라는 목표를 명확하게 설명할 수 있도록 고민하였다. 
+
+적합한 모형 회귀식은 아래와 같다.
+\usepackage{bbm}
+\usepackage{threeparttable}
+\usepackage{booktabs}
+\usepackage{expex}
+
+$$ \hat{y} = 149.53 + 1.8Bread + 0.75EngTax-1.95TeachTax-0.81VacDays-0.05WorkHrs $$
+이는 19번째 행의 자료를 제거하고 적합시킨 모형이며, 이때의 설명력 지표는
+
+$$R^{2} = 0.5335, R^{2}_{adj}=0.4721$$이다.
+
+```{r}
+
+```
+
+```{r}
+bigmac <-
+  read.table("C:/BigMac.csv", header = T, sep = ",")
+pairs(bigmac)
+```
+
+## Supporting evidence
+
+1)Pair 그래프 관찰
+```{r}
+bigmac <-
+  read.table("C:/BigMac.csv", header = T, sep = ",") 
+pairs(bigmac[-19,c(1,2,5,8,9,10)], panel = panel.smooth)
+
+```
+위는 필요한 열변수 및 Bread변수에서 독보적으로 아웃라이어 역할을 하는 19번째 행 Lagos를 제거한 데이터의 Pairwise Plot이다. 이는 독립변수와 종속변수간의 관계 뿐만 아니라 독립변수 간의 다중공선성 여부를 확인하는 데에도 중요하기에 그림을 확인하는 것은 중요하다.
+
+2)아웃라이어 제거 후 모델링
+
+그렇다면 왜 19번째 행 데이터를 제거하였나? 결론부터 말하자면 19번째 행의 Bread값이 혼자만 너무 극단적이어서 Robust한 모델링에 해가 된다고 판단하였기 때문이다. 근거는 아래의 x축이 Bread이고 y축이 BigMac인 xyplot에서 확인할 수 있는데, 오른쪽 끝에서 극단을 나타내는 데이터가 해당 행의 데이터이다. 이는 의미론적으로 생각해 보아도 Bread변수의 이 극단치는 “빵을 구하기 힘들다는 Lagos만의 사정”과 같이 생각해 볼 수 있으므로 좋은 영향을 끼치기보다는 모델의 설명력을 크게 떨어뜨릴 여지가 있어 제거하는 쪽이 합리적이라고 판단하였다.
+```{r}
+bigmac <-
+  read.table("C:/BigMac.csv", header = T, sep = ",") 
+attach(bigmac)
+plot(BigMac~Bread)
+```
+
+
+bold 3)적합 이후의 Residual vs Fitted plot
+적합시킨 후의 Residual Plot을 보고 x값이 커질수록 점차 퍼져나가는 형태로 등분산성 가정을 위배할 수 있겠다는 생각을 했다. 다만 데이터의 숫자 자체가 적어 극단치에 의해 그래보이는 것이라면 크게 문제될 것이 없을 것이라 판단하여 Normal qqplot이 합리적이어서 정규성 가정을 크게 벗어나지 않는다면 등분산성 가정에 대해 크게 의문을 갖지 않기로 하였다. 이에 확인한 qqplot은 다음과 같다. 
+
+```{r}
+bigmac <-
+  read.table("C:/BigMac.csv", header = T, sep = ",") 
+attach(bigmac)
+model6 <- lm(BigMac[-19] ~ Bread[-19] + EngTax[-19] + TeachTax[-19] + VacDays[-19] + WorkHrs[-19])
+summary(model6)
+plot(model6)
+```
+qqnorm그래프를 관찰한 결과 정규성 가정이 안정적이며 residual plot이 퍼져나가는 듯한 것은 단순 데이터 개수의 부족으로 인해 발생하는 것이라 결론내리기로한다. 또한 residual plot에서 24행 데이터가 극단치임을 보여주고 있는데 데이터에서 해당 행은 BigMac의 수치가 커서 극단치로 나타남을 알 수 있다. 이는 해당 구매력평가 지표가 결과적으로 굉장히 유의하게 드러났다는 데에서 해석의 여지가 존재하므로 데이터를 제거하지 않았다. 
